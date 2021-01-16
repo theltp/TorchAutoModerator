@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
-using Sandbox;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Screens.Helpers;
 using Utils.General;
@@ -22,10 +21,12 @@ namespace AutoModerator.Core
     {
         static readonly ILogger Log = LogManager.GetCurrentClassLogger();
         readonly GridLagReportDescriber _describer;
+        readonly AntiGetaway _antiGetaway;
 
-        public GridLagReportGpsFactory(GridLagReportDescriber describer)
+        public GridLagReportGpsFactory(GridLagReportDescriber describer, AntiGetaway antiGetaway)
         {
             _describer = describer;
+            _antiGetaway = antiGetaway;
         }
 
         public async Task<IEnumerable<MyGps>> CreateGpss(IEnumerable<GridLagReport> gridReports, CancellationToken canceller)
@@ -49,9 +50,7 @@ namespace AutoModerator.Core
 
         bool TryCreateGps(GridLagReport report, int rank, out MyGps gps)
         {
-            // must be called in the game loop
-            if (Thread.CurrentThread.ManagedThreadId !=
-                MySandboxGame.Static.UpdateThread.ManagedThreadId)
+            if (!Thread.CurrentThread.IsSessionThread())
             {
                 throw new Exception("Can be called in the game loop only");
             }
@@ -62,7 +61,6 @@ namespace AutoModerator.Core
 
             gps = null;
 
-            // this method fails outside the game loop
             if (!MyEntityIdentifier.TryGetEntity(gridId, out var entity, true))
             {
                 Log.Warn($"Grid not found by EntityId: {gridId}");
@@ -91,6 +89,8 @@ namespace AutoModerator.Core
 
             gps.SetEntity(grid);
             gps.UpdateHash();
+
+            _antiGetaway.Record(report, grid.PositionComp.GetPosition());
 
             return true;
         }

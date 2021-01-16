@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using Sandbox.Game.World;
 using Utils.Torch;
+using VRage.Game.ModAPI;
 
 namespace AutoModerator.Core
 {
@@ -23,26 +25,48 @@ namespace AutoModerator.Core
         static readonly ILogger Log = LogManager.GetCurrentClassLogger();
 
         readonly IConfig _config;
+        readonly HashSet<ulong> _mutedPlayerIds;
 
         public BroadcastReceiverCollector(IConfig config)
         {
             _config = config;
+            _mutedPlayerIds = new HashSet<ulong>();
+        }
+
+        public IEnumerable<IMyPlayer> GetReceivers()
+        {
+            UpdateCollection();
+            foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
+            {
+                if (CheckReceiveInternal(onlinePlayer))
+                {
+                    yield return onlinePlayer;
+                }
+            }
         }
 
         public IEnumerable<long> GetReceiverIds()
         {
-            var targetPlayers = new List<long>();
-            var mutedPlayerIds = new HashSet<ulong>(_config.MutedPlayers);
-            var onlinePlayers = MySession.Static.Players.GetOnlinePlayers();
-            foreach (var onlinePlayer in onlinePlayers)
-            {
-                if (mutedPlayerIds.Contains(onlinePlayer.SteamId())) continue;
-                if (_config.AdminsOnly && !onlinePlayer.IsAdmin()) continue;
+            return GetReceivers().Select(r => r.IdentityId);
+        }
 
-                targetPlayers.Add(onlinePlayer.Identity.IdentityId);
-            }
+        public bool CheckReceive(MyPlayer player)
+        {
+            UpdateCollection();
+            return CheckReceiveInternal(player);
+        }
 
-            return targetPlayers;
+        void UpdateCollection()
+        {
+            _mutedPlayerIds.Clear();
+            _mutedPlayerIds.UnionWith(_config.MutedPlayers);
+        }
+
+        bool CheckReceiveInternal(MyPlayer player)
+        {
+            if (_mutedPlayerIds.Contains(player.SteamId())) return false;
+            if (_config.AdminsOnly && !player.IsAdmin()) return false;
+            return true;
         }
     }
 }

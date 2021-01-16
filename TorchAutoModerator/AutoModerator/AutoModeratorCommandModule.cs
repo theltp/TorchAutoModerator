@@ -14,18 +14,24 @@ using VRageMath;
 
 namespace AutoModerator
 {
-    [Category("lg")]
+    [Category("lag")]
     public sealed class AutoModeratorCommandModule : CommandModule
     {
         AutoModeratorPlugin Plugin => (AutoModeratorPlugin) Context.Plugin;
 
         [Command("on", "Enable broadcasting.")]
         [Permission(MyPromoteLevel.Admin)]
-        public void EnableBroadcasting() => this.CatchAndReport(() => { Plugin.Config.EnableBroadcasting = true; });
+        public void EnableBroadcasting() => this.CatchAndReport(() =>
+        {
+            Plugin.Config.EnableBroadcasting = true;
+        });
 
         [Command("off", "Disable broadcasting.")]
         [Permission(MyPromoteLevel.Admin)]
-        public void DisableBroadcasting() => this.CatchAndReport(() => { Plugin.Config.EnableBroadcasting = false; });
+        public void DisableBroadcasting() => this.CatchAndReport(() =>
+        {
+            Plugin.Config.EnableBroadcasting = false;
+        });
 
         [Command("mspf", "Get or set the current ms/f threshold per online member.")]
         [Permission(MyPromoteLevel.Admin)]
@@ -95,13 +101,16 @@ namespace AutoModerator
 
         [Command("clear", "Clear all custom GPS entities.")]
         [Permission(MyPromoteLevel.Admin)]
-        public void ClearCustomGps() => this.CatchAndReport(() => { Plugin.DeleteAllTrackedGpss(); });
+        public void ClearCustomGps() => this.CatchAndReport(() =>
+        {
+            Plugin.DeleteAllBroadcasts();
+        });
 
         [Command("show", "Show the list of custom GPS entities.")]
         [Permission(MyPromoteLevel.Admin)]
         public void ShowCustomGpsEntities() => this.CatchAndReport(() =>
         {
-            var gpss = Plugin.GetAllTrackedGpsEntities();
+            var gpss = Plugin.GetAllBroadcasts();
 
             if (!gpss.Any())
             {
@@ -118,6 +127,25 @@ namespace AutoModerator
             Context.Respond($"Custom GPS entities: \n{msgBuilder}");
         });
 
+        [Command("check", "Show if the player is receiving a broadcast")]
+        [Permission(MyPromoteLevel.None)]
+        public void CheckReceive(string playerName = null) => this.CatchAndReport(() =>
+        {
+            var player = Context.Player ?? MySession.Static.Players.GetPlayerByName(playerName);
+            if (player == null)
+            {
+                Context.Respond($"Player not found: \"{playerName}\"", Color.Red);
+                return;
+            }
+
+            var doesReceive = Plugin.CheckPlayerReceivesBroadcast(player as MyPlayer);
+            var msg = doesReceive
+                ? $"Player \"{playerName}\" does receive broadcasts"
+                : $"Player \"{playerName}\" does not receive broadcasts";
+
+            Context.Respond(msg);
+        });
+
         [Command("mute", "Mute broadcasting.")]
         [Permission(MyPromoteLevel.None)]
         public void MuteBroadcastsToPlayer() => this.CatchAndReport(() =>
@@ -129,6 +157,7 @@ namespace AutoModerator
             }
 
             Plugin.Config.AddMutedPlayer(Context.Player.SteamUserId);
+            Context.Respond("Muted broadcasting. It may take some time to take effect.");
         });
 
         [Command("unmute", "Unmute broadcasting.")]
@@ -142,11 +171,15 @@ namespace AutoModerator
             }
 
             Plugin.Config.RemoveMutedPlayer(Context.Player.SteamUserId);
+            Context.Respond("Unmuted broadcasting. It may take some time to take effect.");
         });
 
         [Command("unmute_all", "Force every player to unmute broadcasting.")]
         [Permission(MyPromoteLevel.Admin)]
-        public void UnmuteBroadcastsToAll() => this.CatchAndReport(() => { Plugin.Config.RemoveAllMutedPlayers(); });
+        public void UnmuteBroadcastsToAll() => this.CatchAndReport(() =>
+        {
+            Plugin.Config.RemoveAllMutedPlayers();
+        });
 
         [Command("profile", "Profile laggy grids.")]
         [Permission(MyPromoteLevel.Admin)]
@@ -201,13 +234,13 @@ namespace AutoModerator
 
                 if (broadcastResults)
                 {
-                    await Plugin.Broadcast(profileResults, remainingTimeSecs.Seconds());
-                    Context.Respond("Done broadcasting");
+                    Plugin.Broadcast(profileResults, remainingTimeSecs.Seconds());
+                    Context.Respond("Done broadcasting. It may take some time to take effect.");
                 }
             }
         });
 
-        [Command("me", "Profile player grids.")]
+        [Command("mine", "Profile player grids.")]
         [Permission(MyPromoteLevel.None)]
         public void ProfilePlayer() => this.CatchAndReport(async () =>
         {

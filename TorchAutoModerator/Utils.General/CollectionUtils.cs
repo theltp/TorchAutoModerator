@@ -93,6 +93,14 @@ namespace Utils.General
             }
         }
 
+        public static void AddRange<K, V>(this IDictionary<K, V> self, IEnumerable<(K, V)> other)
+        {
+            foreach (var (key, value) in other)
+            {
+                self[key] = value;
+            }
+        }
+
         public static IEnumerable<T> GroupSingletonBy<K, T>(this IEnumerable<T> self, Func<T, K> makeKey)
         {
             var dic = new HashSet<K>();
@@ -132,12 +140,28 @@ namespace Utils.General
             return selfSet;
         }
 
-        public static void RemoveAll<K, V>(this IDictionary<K, V> self, IEnumerable<K> keys)
+        public static void RemoveKeys<K, V>(this IDictionary<K, V> self, IEnumerable<K> keys)
         {
             foreach (var key in keys)
             {
                 self.Remove(key);
             }
+        }
+
+        public static void Add<K, V, C>(this IDictionary<K, C> self, K key, V element) where C : ICollection<V>, new()
+        {
+            if (!self.TryGetValue(key, out var elements))
+            {
+                elements = new C();
+                self[key] = elements;
+            }
+
+            elements.Add(element);
+        }
+
+        public static HashSet<T> ToSet<T>(this IEnumerable<T> self)
+        {
+            return new HashSet<T>(self);
         }
     }
 }

@@ -12,11 +12,10 @@ namespace AutoModerator
     public sealed class AutoModeratorConfig :
         ViewModel,
         GridLagProfiler.IConfig,
-        ServerLagObserver.IConfig,
         GridLagReportDescriber.IConfig,
         BroadcastReceiverCollector.IConfig,
         FileLoggingConfigurator.IConfig,
-        GridLagProfileTimeSeries.IConfig
+        GridLagTimeSeries.IConfig
     {
         const string OpGroupName = "Auto Moderator";
         const string AutoBroadcastGroupName = "Auto Sample & Broadcast";
@@ -40,6 +39,7 @@ namespace AutoModerator
         List<string> _exemptFactionTags = new List<string>();
         bool _suppressWpfOutput;
         bool _enableLoggingTrace;
+        bool _enableLoggingDebug;
         string _logFilePath = DefaultLogFilePath;
 
         [XmlElement("EnableBroadcasting")]
@@ -67,7 +67,7 @@ namespace AutoModerator
         }
 
         [XmlElement("FirstIdleSeconds")]
-        [Display(Order = 2, Name = "First idle seconds", GroupName = AutoBroadcastGroupName)]
+        [Display(Order = 2, Name = "First idle seconds", GroupName = AutoBroadcastGroupName, Description = "Game is generally laggy for the first minute or two of the session.")]
         public double FirstIdle
         {
             get => _firstIdle;
@@ -100,7 +100,7 @@ namespace AutoModerator
 
         [XmlElement("SampleFrequencySeconds")]
         [Display(Order = 5, Name = "Sample frequency (seconds)", GroupName = AutoBroadcastGroupName)]
-        public double SampleFrequency
+        public double ProfileTime
         {
             get => _sampleFrequency;
             set => SetValue(ref _sampleFrequency, value);
@@ -108,7 +108,7 @@ namespace AutoModerator
 
         [XmlElement("BufferSeconds")]
         [Display(Order = 6, Name = "Sample time (seconds)", GroupName = AutoBroadcastGroupName)]
-        public double Window
+        public double LongLaggyWindow
         {
             get => _window;
             set => SetValue(ref _window, value);
@@ -178,6 +178,14 @@ namespace AutoModerator
             set => SetValue(ref _enableLoggingTrace, value);
         }
 
+        [XmlElement("EnableLoggingDebug")]
+        [Display(Order = 13, Name = "Enable Logging Debug", GroupName = LogGroupName)]
+        public bool EnableLoggingDebug
+        {
+            get => _enableLoggingDebug;
+            set => SetValue(ref _enableLoggingDebug, value);
+        }
+
         [XmlElement("LogFilePath")]
         [Display(Order = 14, Name = "Log File Path", GroupName = LogGroupName)]
         public string LogFilePath
@@ -211,5 +219,7 @@ namespace AutoModerator
             _mutedPlayerIds.Clear();
             OnPropertyChanged(nameof(MutedPlayerIds));
         }
+
+        double GridLagTimeSeries.IConfig.ProfileResultsExpireTime => _window + _minLifespan;
     }
 }

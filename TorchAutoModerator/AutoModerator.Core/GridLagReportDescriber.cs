@@ -39,7 +39,7 @@ namespace AutoModerator.Core
                 .Replace("{faction}", report.FactionTagOrNull ?? "<none>")
                 .Replace("{ratio}", $"{report.ThresholdNormal * 100:0}%");
 
-            if (report.RemainingTimeOrInfinite is TimeSpan remainingTime)
+            if (report.RemainingTime is TimeSpan remainingTime)
             {
                 var remainingTimeStr = RemainingTimeToString(remainingTime);
                 return $"{str} ({remainingTimeStr})";

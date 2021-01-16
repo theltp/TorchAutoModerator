@@ -44,8 +44,6 @@ namespace AutoModerator.Core
 
         public IEnumerable<GridLagProfileResult> GetProfileResults(int count)
         {
-            Log.Debug("Scanning grids...");
-
             var result = _gridProfiler.GetResult();
 
             var gridReports = new List<GridLagProfileResult>();
