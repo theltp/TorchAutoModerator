@@ -93,7 +93,9 @@ namespace AutoModerator
 
                 LaggyGridBroadcasterBase.BroadcasterType.Notification => throw new NotImplementedException(),
 
-                LaggyGridBroadcasterBase.BroadcasterType.Chat => throw new NotImplementedException(),
+                LaggyGridBroadcasterBase.BroadcasterType.GlobalChat => new LaggyGridGlobalChatBroadcaster(Config, this),
+
+                LaggyGridBroadcasterBase.BroadcasterType.DirectChat => new LaggyGridDirectChatBroadcaster(Config, this),
 
                 _ => throw new ArgumentOutOfRangeException(nameof(AutoModeratorConfig.BroadcasterType)),
             };

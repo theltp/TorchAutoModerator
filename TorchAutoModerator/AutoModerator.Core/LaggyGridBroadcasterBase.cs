@@ -33,7 +33,8 @@ namespace AutoModerator.Core
             GPS,
             QuestLog,
             Notification,
-            Chat
+            GlobalChat,
+            DirectChat
         }
         
         protected IConfig _config;

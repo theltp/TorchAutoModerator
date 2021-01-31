@@ -41,7 +41,7 @@ namespace AutoModerator.Core
                 {
                     if (!MySession.Static.Players.IsPlayerOnline(entityNotification.Report.PlayerIdentityId))
                     {
-                        _log.Debug($"Can't send notification player '{entityNotification.Report.PlayerNameOrNull}' is offline");
+                        _log.Trace($"Can't send notification player '{entityNotification.Report.PlayerNameOrNull}' is offline");
                         return;
                     }
                     entityNotification.Identities.Add(MySession.Static.Players.TryGetIdentity(entityNotification.Report.PlayerIdentityId));

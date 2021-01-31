@@ -49,7 +49,7 @@ namespace AutoModerator.Core
             entityNotification.Quests.Clear();
             entityNotification.Quests.AddRange(entityNotification.Identities.Select(b => new Quest("Perfomance Warning", b.IdentityId)
             {
-                Description = $"Your grid [{entityNotification.Entity.DisplayName}] is dropping server simulation speed! Top 5 of perfomance issues:",
+                Description = $"Your grid [{entityNotification.Report.GridName}] is dropping server simulation speed! Top 5 of perfomance issues:",
                 DisposeTime = entityNotification.Lifespan
             }));
             var objectives = entityNotification.MspfStats.OrderByDescending(b => b.Value)
