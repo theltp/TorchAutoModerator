@@ -44,15 +44,15 @@ namespace Utils.Torch
             return false;
         }
 
-        public bool TryParseInt(string key, out int value)
+        public bool TryParseInt(string key, out int value, int defaultValue = default)
         {
-            value = 0;
+            value = defaultValue;
             return TryParse(key, out var str) && int.TryParse(str, out value);
         }
 
-        public bool TryParseDouble(string key, out double value)
+        public bool TryParseDouble(string key, out double value, double defaultValue = default)
         {
-            value = 0d;
+            value = defaultValue;
             return TryParse(key, out var str) && double.TryParse(str, out value);
         }
 

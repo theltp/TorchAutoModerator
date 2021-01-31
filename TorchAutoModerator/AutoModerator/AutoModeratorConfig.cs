@@ -31,6 +31,7 @@ namespace AutoModerator
         string _gpsDescriptionFormat = "The {rank} laggiest faction ({ratio}). Get 'em!";
         List<ulong> _mutedPlayerIds = new List<ulong>();
         List<string> _exemptFactionTags = new List<string>();
+        private LaggyGridBroadcasterBase.BroadcasterType _broadcasterType;
 
         [XmlElement("EnableBroadcasting")]
         [Display(Order = 0, Name = "Enable broadcasting", Description = "Tick off to stop broadcasting new GPS entities.")]
@@ -128,9 +129,17 @@ namespace AutoModerator
             set => SetValue(ref _mutedPlayerIds, new HashSet<ulong>(value).ToList());
         }
 
+        [XmlElement("BroadcasterType")]
+        [Display(Order = 12, Name = "Lag Broadcaster Type", Description = "How plugin will display laggy grids.")]
+        public LaggyGridBroadcasterBase.BroadcasterType BroadcasterType 
+        { 
+            get => _broadcasterType; 
+            set => SetValue(ref _broadcasterType, value);
+        }
+
         TimeSpan LaggyGridReportBuffer.IConfig.WindowTime => BufferSeconds.Seconds();
-        TimeSpan LaggyGridGpsBroadcaster.IConfig.GpsLifespan => _gpsLifespanSeconds.Seconds();
-        IEnumerable<ulong> LaggyGridGpsBroadcaster.IConfig.MutedPlayers => _mutedPlayerIds;
+        TimeSpan LaggyGridBroadcasterBase.IConfig.GpsLifespan => _gpsLifespanSeconds.Seconds();
+        IEnumerable<ulong> LaggyGridBroadcasterBase.IConfig.MutedPlayers => _mutedPlayerIds;
         IEnumerable<string> LaggyGridFinder.IConfig.ExemptFactionTags => _exemptFactionTags;
 
         public void AddMutedPlayer(ulong mutedPlayerId)

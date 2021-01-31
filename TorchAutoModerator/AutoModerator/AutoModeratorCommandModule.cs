@@ -166,8 +166,8 @@ namespace AutoModerator
             {
                 if (CommandOption.TryGetOption(arg, out var option))
                 {
-                    if (option.TryParseDouble("time", out profileTime) ||
-                        option.TryParseInt("top", out top))
+                    if (option.TryParseDouble("time", out profileTime, 5) ||
+                        option.TryParseInt("top", out top, 10))
                     {
                         continue;
                     }
@@ -177,7 +177,7 @@ namespace AutoModerator
                 }
             }
 
-            Context.Respond($"Profiling (profile time: {profileTime:0.0}s, top: {top} factions)...");
+            Context.Respond($"Profiling (profile time: {profileTime:N1}s, top: {top:N0} factions)...");
 
             var result = await Plugin.ProfileFactionMembers(profileTime.Seconds());
             result = result.OrderByDescending(r => r.Mspf).Take(top);
@@ -191,7 +191,7 @@ namespace AutoModerator
             var msgBuilder = new StringBuilder();
             foreach (var (faction, count, mspf) in result)
             {
-                msgBuilder.AppendLine($"> {faction.Tag}: {mspf:0.00}mspf ({count} online players)");
+                msgBuilder.AppendLine($"> {faction.Tag}: {mspf:N2}mspf ({count} online players)");
             }
 
             Context.Respond($"Finished profiling:\n{msgBuilder}");
@@ -209,7 +209,7 @@ namespace AutoModerator
             {
                 if (CommandOption.TryGetOption(arg, out var option))
                 {
-                    if (option.TryParseDouble("time", out profileTime) ||
+                    if (option.TryParseDouble("time", out profileTime, 5) ||
                         option.IsParameterless("broadcast", out broadcast) ||
                         option.IsParameterless("buffered", out buffered))
                     {
@@ -221,7 +221,7 @@ namespace AutoModerator
                 }
             }
 
-            Context.Respond($"Scanning (profile time: {profileTime:0.0}s, buffered: {buffered}, broadcast: {broadcast})...");
+            Context.Respond($"Scanning (profile time: {profileTime:N1}s, buffered: {buffered}, broadcast: {broadcast})...");
 
             var reports = await Plugin.FindLaggyGrids(profileTime.Seconds(), buffered);
 

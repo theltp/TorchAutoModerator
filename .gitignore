@@ -11,3 +11,7 @@ obj/
 
 GameBinaries/
 TorchBinaries/
+Build/
+GameBinaries
+
+TorchBinaries

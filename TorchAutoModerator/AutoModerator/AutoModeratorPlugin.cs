@@ -23,17 +23,15 @@ namespace AutoModerator
         Persistent<AutoModeratorConfig> _config;
         UserControl _userControl;
         CancellationTokenSource _canceller;
-        LaggyGridGpsBroadcaster _gpsBroadcaster;
+        LaggyGridBroadcasterBase _broadcaster;
         LaggyGridFinder _gridFinder;
         LaggyGridReportBuffer _gridReportBuffer;
-        LaggyGridGpsMaker _gridMaker;
         FactionScanner _factionScanner;
         ServerLagObserver _serverLagObserver;
         FactionMemberProfiler _factionMemberProfiler;
-        LaggyGridGpsDescriptionMaker _descriptionMaker;
-        PersistentGpsHashStore _gpsHashStore;
+        public PersistentGpsHashStore GpsHashStore;
 
-        AutoModeratorConfig Config => _config.Data;
+        public AutoModeratorConfig Config => _config.Data;
 
         public bool Enabled
         {
@@ -83,13 +81,22 @@ namespace AutoModerator
             });
 
             var gpsHashFilePath = this.MakeFilePath("gpsHashes.txt");
-            _gpsHashStore = new PersistentGpsHashStore(gpsHashFilePath);
+            GpsHashStore = new PersistentGpsHashStore(gpsHashFilePath);
 
             _gridReportBuffer = new LaggyGridReportBuffer(Config);
-            _descriptionMaker = new LaggyGridGpsDescriptionMaker(Config);
-            _gridMaker = new LaggyGridGpsMaker(_descriptionMaker);
-            _gpsBroadcaster = new LaggyGridGpsBroadcaster(Config, _gpsHashStore);
 
+            _broadcaster = Config.BroadcasterType switch
+            {
+                LaggyGridBroadcasterBase.BroadcasterType.GPS => new LaggyGridGpsBroadcaster(Config, this),
+
+                LaggyGridBroadcasterBase.BroadcasterType.QuestLog => new LaggyGridNotificationBroadcaster(Config, this),
+
+                LaggyGridBroadcasterBase.BroadcasterType.Notification => throw new NotImplementedException(),
+
+                LaggyGridBroadcasterBase.BroadcasterType.Chat => throw new NotImplementedException(),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(AutoModeratorConfig.BroadcasterType)),
+            };
             _serverLagObserver = new ServerLagObserver(Config, 5);
         }
 
@@ -100,12 +107,13 @@ namespace AutoModerator
 
         void OnGameLoaded()
         {
-            _gpsHashStore.DeleteAllTrackedGpssFromGame();
+            GpsHashStore.DeleteAllTrackedGpssFromGame();
 
             var canceller = _canceller.Token;
             TaskUtils.RunUntilCancelledAsync(LoopCollecting, canceller).Forget(Log);
             TaskUtils.RunUntilCancelledAsync(_factionScanner.LoopProfilingFactions, canceller).Forget(Log);
-            TaskUtils.RunUntilCancelledAsync(_gpsBroadcaster.LoopCleaning, canceller).Forget(Log);
+            if (_broadcaster is LaggyGridGpsBroadcaster gpsBroadcaster)
+                TaskUtils.RunUntilCancelledAsync(gpsBroadcaster.LoopCleaning, canceller).Forget(Log);
             TaskUtils.RunUntilCancelledAsync(_serverLagObserver.LoopObserving, canceller).Forget(Log);
         }
 
@@ -181,34 +189,20 @@ namespace AutoModerator
 
         public async Task BroadcastLaggyGrids(IEnumerable<LaggyGridReport> gridReports, CancellationToken canceller = default)
         {
-            // MyGps can be created in the game loop only (idk why)
-            await GameLoopObserver.MoveToGameLoop(canceller);
-
-            // create GPS entities of laggy grids
-            var gpsCollection = new List<MyGps>();
-            foreach (var (gridReport, i) in gridReports.Select((r, i) => (r, i)))
-            {
-                var lagRank = i + 1;
-                if (_gridMaker.TryMakeGps(gridReport, lagRank, out var gps))
-                {
-                    gpsCollection.Add(gps);
-                }
-            }
-
-            await TaskUtils.MoveToThreadPool(canceller);
-
-            // broadcast to players
-            _gpsBroadcaster.BroadcastToOnlinePlayers(gpsCollection);
+            await _broadcaster.BroadcastToOnlinePlayers(gridReports, canceller);
         }
 
         public void CleanAllCustomGps()
         {
-            _gpsBroadcaster.DeleteAllCustomGpss();
+            if (_broadcaster is LaggyGridGpsBroadcaster gpsBroadcaster)
+                gpsBroadcaster.DeleteAllCustomGpss();
         }
 
         public IEnumerable<MyGps> GetAllCustomGpsEntities()
         {
-            return _gpsBroadcaster.GetAllCustomGpsEntities();
+            if (_broadcaster is LaggyGridGpsBroadcaster gpsBroadcaster)
+                return gpsBroadcaster.GetAllCustomGpsEntities();
+            return Enumerable.Empty<MyGps>();
         }
 
         public void MutePlayer(ulong playerSteamId)

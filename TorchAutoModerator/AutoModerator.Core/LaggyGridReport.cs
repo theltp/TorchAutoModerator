@@ -10,7 +10,8 @@
             double mspfRatio,
             string gridName,
             string factionTag = null,
-            string playerName = null)
+            string playerName = null,
+            long identityId = -1)
         {
             GridId = gridId;
             Mspf = mspf;
@@ -18,6 +19,7 @@
             GridName = gridName;
             FactionTagOrNull = factionTag;
             PlayerNameOrNull = playerName;
+            PlayerIdentityId = identityId;
         }
 
         public long GridId { get; }
@@ -26,6 +28,7 @@
         public string GridName { get; }
         public string FactionTagOrNull { get; }
         public string PlayerNameOrNull { get; }
+        public long PlayerIdentityId { get; }
 
         public override string ToString()
         {
