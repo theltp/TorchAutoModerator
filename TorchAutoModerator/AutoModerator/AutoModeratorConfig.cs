@@ -15,7 +15,7 @@ namespace AutoModerator
         LaggyGridReportBuffer.IConfig,
         LaggyGridFinder.IConfig,
         ILagScannerConfig,
-        LaggyGridGpsBroadcaster.IConfig,
+        LaggyGridBroadcasterBase.IConfig,
         ServerLagObserver.IConfig,
         LaggyGridGpsDescriptionMaker.IConfig
     {
@@ -32,6 +32,7 @@ namespace AutoModerator
         List<ulong> _mutedPlayerIds = new List<ulong>();
         List<string> _exemptFactionTags = new List<string>();
         private LaggyGridBroadcasterBase.BroadcasterType _broadcasterType;
+        private bool _showFactionMember;
 
         [XmlElement("EnableBroadcasting")]
         [Display(Order = 0, Name = "Enable broadcasting", Description = "Tick off to stop broadcasting new GPS entities.")]
@@ -129,17 +130,26 @@ namespace AutoModerator
             set => SetValue(ref _mutedPlayerIds, new HashSet<ulong>(value).ToList());
         }
 
-        [XmlElement("BroadcasterType")]
-        [Display(Order = 12, Name = "Lag Broadcaster Type", Description = "How plugin will display laggy grids.")]
-        public LaggyGridBroadcasterBase.BroadcasterType BroadcasterType 
+        [XmlElement("ShowFactionMember")]
+        [Display(Order = 12, Name = "Faction with player", Description = "Display laggy faction with player or not.")]
+        public bool ShowFactionMember 
         { 
-            get => _broadcasterType; 
+            get => _showFactionMember;
+            set => SetValue(ref _showFactionMember, value); 
+        }
+
+        [XmlElement("BroadcasterType")]
+        [Display(Order = 13, Name = "Lag Broadcaster Type", Description = "How plugin will display laggy grids.")]
+        public LaggyGridBroadcasterBase.BroadcasterType BroadcasterType
+        {
+            get => _broadcasterType;
             set => SetValue(ref _broadcasterType, value);
         }
 
         TimeSpan LaggyGridReportBuffer.IConfig.WindowTime => BufferSeconds.Seconds();
         TimeSpan LaggyGridBroadcasterBase.IConfig.GpsLifespan => _gpsLifespanSeconds.Seconds();
         IEnumerable<ulong> LaggyGridBroadcasterBase.IConfig.MutedPlayers => _mutedPlayerIds;
+        bool LaggyGridBroadcasterBase.IConfig.ShowFactionMember => _showFactionMember;
         IEnumerable<string> LaggyGridFinder.IConfig.ExemptFactionTags => _exemptFactionTags;
 
         public void AddMutedPlayer(ulong mutedPlayerId)

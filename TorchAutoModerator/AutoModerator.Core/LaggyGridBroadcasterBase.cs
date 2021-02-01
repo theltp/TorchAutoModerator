@@ -26,6 +26,11 @@ namespace AutoModerator.Core
             /// Broadcast to admin players only.
             /// </summary>
             bool AdminsOnly { get; }
+
+            /// <summary>
+            /// Broadcast player name with faction tag or only faction tag
+            /// </summary>
+            bool ShowFactionMember { get; }
         }
 
         public enum BroadcasterType
