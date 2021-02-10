@@ -63,7 +63,7 @@ namespace AutoModerator
             this.ListenOnGameLoaded(OnGameLoaded);
             this.ListenOnGameUnloading(OnGameUnloading);
 
-            GameLoopObserverManager.Add(torch);
+            UtilsPatchManager.Add(torch);
 
             var configFilePath = this.MakeConfigFilePath();
             _config = Persistent<AutoModeratorConfig>.Load(configFilePath);
@@ -96,6 +96,8 @@ namespace AutoModerator
                 LaggyGridBroadcasterBase.BroadcasterType.GlobalChat => new LaggyGridGlobalChatBroadcaster(Config, this),
 
                 LaggyGridBroadcasterBase.BroadcasterType.DirectChat => new LaggyGridDirectChatBroadcaster(Config, this),
+
+                LaggyGridBroadcasterBase.BroadcasterType.PerformanceWarning => new LaggyGridInGameWarningBroadcaster(Config, this),
 
                 _ => throw new ArgumentOutOfRangeException(nameof(AutoModeratorConfig.BroadcasterType)),
             };
@@ -158,7 +160,8 @@ namespace AutoModerator
         async Task RunOneInterval(CancellationToken canceller)
         {
             var gridReports = await FindLaggyGrids(10.Seconds(), true, canceller);
-            await BroadcastLaggyGrids(gridReports, canceller);
+            if (gridReports.Count() > 0)
+                await BroadcastLaggyGrids(gridReports, canceller);
         }
 
         void OnGameUnloading()

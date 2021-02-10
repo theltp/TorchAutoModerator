@@ -4,7 +4,7 @@
   <Name>Auto Moderator</Name>
   <Guid>8333d8a5-c545-42d9-a606-8dae9db3c678</Guid>
   <Repository>https://github.com/HnZGaming/TorchAutoModerator</Repository>
-  <Version>v1.0.7682.2295</Version>
+  <Version>v1.0.7682.2296</Version>
   <Dependencies>
         <PluginDependency>
             <Plugin>da82de0f-9d2f-4571-af1c-88c7921bc063</Plugin>

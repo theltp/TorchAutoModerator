@@ -39,7 +39,8 @@ namespace AutoModerator.Core
             QuestLog,
             Notification,
             GlobalChat,
-            DirectChat
+            DirectChat,
+            PerformanceWarning
         }
         
         protected IConfig _config;

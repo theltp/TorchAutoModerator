@@ -23,15 +23,15 @@ namespace AutoModerator.Core
         public override Task BroadcastToOnlinePlayers(IEnumerable<LaggyGridReport> gridReports, CancellationToken canceller = default)
         {
             var sb = new StringBuilder().AppendLine("Overloading grids:");
-            gridReports.ForEach(b => sb.AppendLine($"> {(b.FactionTagOrNull == null ? $"player '{b.PlayerNameOrNull}'" ?? "'nobody'" : $"faction '{b.FactionTagOrNull}' {(_config.ShowFactionMember ? $"player '{b.PlayerNameOrNull}'" ?? "'nobody'" : "")}")} grid '{b.GridName}' {b.Mspf:N2} ms"));
+            gridReports.ForEach(b => sb.AppendLine($"> {(b.FactionTagOrNull == null ? $"player '{b.PlayerNameOrNull ?? "nobody"} '" : $"faction '{b.FactionTagOrNull}' {(_config.ShowFactionMember ? $"player '{b.PlayerNameOrNull}'" ?? "'nobody'" : "")}")} grid '{b.GridName}' {b.Mspf:N2} ms"));
 
             if (_config.AdminsOnly)
                 MySession.Static.Players.GetOnlinePlayers()
                     .Cast<IMyPlayer>()
                     .Where(b => b.PromoteLevel > MyPromoteLevel.Admin)
-                    .ForEach(b => _chatManager?.SendMessageAsOther("[Performance waning]", sb.ToString(), Color.IndianRed, b.SteamUserId));
+                    .ForEach(b => _chatManager?.SendMessageAsOther("[Performance warning]", sb.ToString(), Color.IndianRed, b.SteamUserId));
             else
-                _chatManager?.SendMessageAsOther("[Performance waning]", sb.ToString(), Color.IndianRed);
+                _chatManager?.SendMessageAsOther("[Performance warning]", sb.ToString(), Color.IndianRed);
             return Task.CompletedTask;
         }
     }

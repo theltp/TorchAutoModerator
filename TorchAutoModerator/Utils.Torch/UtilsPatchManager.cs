@@ -4,22 +4,22 @@ using Torch.Managers.PatchManager;
 
 namespace Utils.Torch
 {
-    internal sealed class GameLoopObserverManager : Manager
+    internal sealed class UtilsPatchManager : Manager
     {
 #pragma warning disable 649
-        [DependencyAttribute(Ordered = false)]
+        [Dependency(Ordered = false)]
         readonly PatchManager _patchMgr;
 #pragma warning restore 649
 
         PatchContext _patchContext;
 
-        GameLoopObserverManager(ITorchBase torchInstance) : base(torchInstance)
+        UtilsPatchManager(ITorchBase torchInstance) : base(torchInstance)
         {
         }
 
         public static void Add(ITorchBase torch)
         {
-            var mngr = new GameLoopObserverManager(torch);
+            var mngr = new UtilsPatchManager(torch);
             torch.Managers.AddManager(mngr);
         }
 
@@ -29,6 +29,7 @@ namespace Utils.Torch
 
             _patchContext = _patchMgr.AcquireContext();
             GameLoopObserver.Patch(_patchContext);
+            PerformanceWarningApi.Patch(_patchContext);
         }
 
         public override void Detach()
